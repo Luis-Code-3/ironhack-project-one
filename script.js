@@ -8,6 +8,7 @@ canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 const startButton = document.querySelector('#start-button');
+const levelCounter = document.querySelector('.level');
 
 const starshipImage = new Image();
 starshipImage.src = "/images/spaceship-new-two.png";
@@ -27,6 +28,12 @@ alienImageFour.src = "/images/alien-four.png";
 const alienImageFive = new Image();
 alienImageFive.src = "/images/alien-five.png";
 
+const alienInvasion = new Image();
+alienInvasion.src = '/images/alien-invasion.png';
+
+const earthImage = new Image();
+earthImage.src = '/images/earth-win.png'
+
 let alienImageArray = [alienImageOne, alienImageFive, alienImageOne, alienImageOne];
 
 // PLAYER & ALIENS & KEYS & PARTICLES
@@ -35,6 +42,8 @@ let alienArray = [];
 let laserArray = [];
 let particleArray = [];
 let animationId;
+let levelOneIdentifier = false;
+let playerLose = false;
 let keys = {
     right: false,
     left: false
@@ -53,7 +62,6 @@ let starship = {
     },
 
     draw: function() {
-        //ctx.fillStyle = "red";
         ctx.drawImage(starshipImage, this.x, this.y, this.width, this.height);
     },
 
@@ -152,6 +160,9 @@ function startGame() {
     particleArray = [];
     starship.x = 100;
     starship.y = canvas.height/2 - 25;
+    playerLose = false;
+    levelCounter.style.visibility = 'visible';
+    levelCounter.innerHTML = "LEVEL: 1"
     cancelAnimationFrame(animationId);
     levelOne();
 }
@@ -160,8 +171,9 @@ function startGame() {
 
 
 function levelOne() {
+    levelOneIdentifier = true;
+    createAliensOne();
     animate();
-    createAliensTwo();
     createParticles();
 }
 
@@ -213,6 +225,8 @@ function animate() {
 
         if(alienArray[o].x < 0) {
             alienArray.splice(o, 1);
+            playerLose = true;
+            //gameOver();
         } else {
             alienArray[o].move();
         }
@@ -234,6 +248,19 @@ function animate() {
             alienArray.splice(j, 1);
             explosionSound();
         }
+    }
+
+    if (playerLose === true) {
+        gameOver();
+    }
+
+    if (alienArray.length === 0 && playerLose === false) {
+        if(levelOneIdentifier === true) {
+            createAliensTwo();
+        } else {
+            gameWin();
+        }
+        //gameWin();
     }
 }
 
@@ -319,6 +346,9 @@ function checkCollisionLaser(laser) {
 }
 
 function createAliensTwo() {
+    levelCounter.innerHTML = 'LEVEL: 2'
+    levelOneIdentifier = false;
+    newLevelSound();
     for(let i = 0; i < 55; i++) {
 
         if (i === 0) {
@@ -356,9 +386,31 @@ function createAliensTwo() {
     }
 }
 
+function gameOver() {
+    alienArray = [];
+    laserArray = [];
+    particleArray = [];
+    levelCounter.style.visibility = 'hidden';
+    cancelAnimationFrame(animationId);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(alienInvasion, 0, 0, canvas.width, canvas.height);
+    startButton.style.visibility = 'visible';
+}
+
+function gameWin() {
+    alienArray = [];
+    laserArray = [];
+    particleArray = [];
+    levelCounter.style.visibility = 'hidden';
+    cancelAnimationFrame(animationId);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(earthImage, 0, 0, canvas.width, canvas.height);
+    startButton.style.visibility = 'visible';
+}
+
 function playMusic() {
     let backgroundMusic = new Audio('/audios/Rich in the 80s - DivKid.mp3');
-    backgroundMusic.volume = 0.005;
+    backgroundMusic.volume = 0.03;
     backgroundMusic.play();
     // some weird favicon icon error here
 }
@@ -373,6 +425,12 @@ function explosionSound() {
     let boom = new Audio('/audios/explosion-one.wav');
     boom.volume = 0.1;
     boom.play();
+}
+
+function newLevelSound() {
+    let newLevel = new Audio('/audios/level-sound.wav');
+    newLevel.volume = 0.2;
+    newLevel.play();
 }
 
 function hideButton() {
@@ -395,6 +453,7 @@ window.onload = () => {
         playMusic();
     };
 
+    
     document.addEventListener('keydown', e => {
         switch (e.keyCode) {
             case 37:

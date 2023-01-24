@@ -5,8 +5,25 @@
 
 #window {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-end;
     position: relative;
+}
+
+.level {
+    position: absolute;
+    color: white;
+    font-family: 'Press Start 2P';
+    margin-bottom: 20px;
+    margin-left: 20px;
+    visibility: hidden;
+}
+
+.score {
+    position: absolute;
+    color: white;
+    visibility: hidden;
+    font-family: 'Press Start 2P';
 }
 
 #window button {
@@ -20,7 +37,7 @@
     font-size: 20px;
     font-weight: 700;
     position: absolute;
-    align-self: flex-end;
+    align-self: center;
     margin-bottom: 50px;
     visibility: visible;
 }

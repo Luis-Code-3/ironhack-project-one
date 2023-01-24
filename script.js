@@ -4,6 +4,8 @@
 
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
 const starshipImage = new Image();
 starshipImage.src = "";
@@ -14,10 +16,16 @@ alienImage.src = "";
 const backgroundImage = new Image();
 backgroundImage.src = "";
 
-// PLAYER & ALIENS
+// PLAYER & ALIENS & KEYS & PARTICLES
 
 let alienArray = [];
 let laserArray = [];
+let particleArray = [];
+let animationId;
+let keys = {
+    right: false,
+    left: false
+}
 
 let starship = {
     x: 100,
@@ -26,12 +34,9 @@ let starship = {
     height: 0,
     speed: 0,
 
-    moveLeft: function() {
-        this.y -= 5;
-    },
-
-    moveRight: function() {
-        this.y += 5;
+    update: function() {
+        this.draw();
+        this.y += this.speed;
     },
 
     draw: function() {
@@ -50,17 +55,46 @@ class Laser {
     constructor() {
         this.x = starship.x + 50;
         this.y = starship.y + 50;
-        this.width = 10;
-        this.height = 10;
+        this.width = 30;
+        this.height = 5;
+        this.speed = 15
     }
 
     move() {
-        this.x += 5;
+        this.draw();
+        this.x += this.speed;
     }
 
     draw() {
         ctx.fillStyle = "red";
         ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+
+    remove() {
+
+    }
+}
+
+class Particle {
+    constructor(positionX, positionY, radius, color) {
+        this.x = positionX;
+        this.y = positionY;
+        this.radius = radius;
+        this.color = color;
+        this.speed = 10;
+    }
+
+    move() {
+        this.draw();
+        this.x -= this.speed;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
     }
 
     remove() {
@@ -74,10 +108,12 @@ class Alien {
         this.y = 100 + b;
         this.width = 30;
         this.height = 30;
+        this.speed = 5;
     }
 
     move() {
-        this.x -= 5;
+        this.draw();
+        this.x -= this.speed;
     }
 
     draw() {
@@ -99,38 +135,59 @@ class Alien {
 
 function startGame() {
     alienArray = [];
-
+    laserArray = [];
+    starship.x = 100;
+    starship.y = canvas.height/2 - 50;
+    cancelAnimationFrame(animationId);
     levelOne();
 }
 
-function animationLoop() {
-    animationId = setInterval(() => {
-        updateCanvas();
-    }, 16);
+// LEVEL 1
+
+
+function levelOne() {
+    animate();
+    createAliensOne();
+    createParticles();
 }
 
-function updateCanvas() {
-    ctx.clearRect(0, 0, 1300, 550);
-    starship.draw();
+function animate() {
+    animationId = requestAnimationFrame(animate);
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    starship.update();
 
-    
+    if (keys.left) {
+        starship.speed = -8;
+    } else if (keys.right) {
+        starship.speed = 8;
+    } else {
+        starship.speed = 0;
+    }
+
+    for (let p = 0; p < particleArray.length; p++) {
+        if(particleArray[p].x < 0) {
+            particleArray.splice(p, 1)
+        } else {
+            particleArray[p].move();
+        }
+    }
+
     for (let o = 0; o < alienArray.length; o++) {
 
         if(alienArray[o].x < 0) {
             alienArray.splice(o, 1);
         } else {
             alienArray[o].move();
-            alienArray[o].draw();
         }
     }
 
     for (let i = 0; i < laserArray.length; i++) {
 
-        if(laserArray[i].x > 1300) {
+        if(laserArray[i].x > canvas.width) {
             laserArray.splice(i, 1);
         } else {
             laserArray[i].move();
-            laserArray[i].draw();
         }
     }
 
@@ -139,22 +196,17 @@ function updateCanvas() {
             alienArray.splice(j, 1);
         }
     }
-
-    // for(let k = 0; k < alienArray.length; k++) {
-    //     if (checkCollision(laserArray[k]) === true) {
-    //         laserArray.splice(k, 1);
-    //     }
-    // }
-
 }
 
-// LEVEL 1
-
-
-function levelOne() {
-    starship.draw();
-    createAliensOne();
-    animationLoop();
+function createParticles() {
+    for (let i = 0; i < 60; i++) {
+        let xValue = Math.random() * canvas.width;
+        let yValue = Math.random() * canvas.height;
+        let rValue = Math.random() * 3;
+        let cValue = 'white';
+        particleArray.push(new Particle(xValue, yValue, rValue, cValue));
+        particleArray[i].draw();
+    }
 }
 
 function createAliensOne() {
@@ -175,30 +227,6 @@ function createAliensOne() {
         }
     
     }
-    //MANUALLY SPAWN THEM
-    // let alienOne = new Alien();
-    // alienOne.draw(0, 0);
-
-    // let alienTwo = new Alien();
-    // alienTwo.draw(0, 100);
-
-    // let alienThree = new Alien();
-    // alienThree.draw(0, 200);
-
-    // let alienFour = new Alien();
-    // alienFour.draw(0, 300);
-
-    // let alienFive = new Alien();
-    // alienFive.draw(100, 0);
-
-    // let alienSix = new Alien();
-    // alienSix.draw(100, 100);
-
-    // let alienSeven = new Alien();
-    // alienSeven.draw(100, 200);
-
-    // let alienEight = new Alien();
-    // alienEight.draw(100, 300);
 }
 
 function checkCollisionAlien(alien) {
@@ -242,10 +270,21 @@ window.onload = () => {
     document.addEventListener('keydown', e => {
         switch (e.keyCode) {
             case 37:
-                starship.moveLeft();
+                keys.left = true;
                 break;
             case 39:
-                starship.moveRight();
+                keys.right = true;
+                break;
+        }
+    });
+
+    document.addEventListener('keyup', e => {
+        switch (e.keyCode) {
+            case 37:
+                keys.left = false;
+                break;
+            case 39:
+                keys.right = false;
                 break;
         }
     });
@@ -257,3 +296,5 @@ window.onload = () => {
         }
     })
 }
+
+console.log(innerWidth);

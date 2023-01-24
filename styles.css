@@ -4,36 +4,26 @@
 }
 
 #window {
-    background-image: url(/images/background-image-one.jpeg);
-    width: 100vw;
-    height: 100vh;
     display: flex;
-    flex-direction: column;
     justify-content: center;
-    align-items: center;
+    position: relative;
 }
 
 #window button {
     background-color: rgb(37, 37, 55);
     box-shadow: 0px 0px 20px black;
-    padding: 30px 60px;
+    padding: 20px 40px;
     border: none;
     border-radius: 10px;
     color: white;
-    font-size: 40px;
+    font-size: 20px;
     font-weight: 700;
+    position: absolute;
+    align-self: flex-end;
+    margin-bottom: 50px;
 }
 
 canvas {
     background-image: url(/images/starback.webp);
-    border: 2px solid white;
-    border-radius: 10px;
     box-shadow: 0px 0px 30px black;
-}
-
-.start {
-    width: 1300px;
-    height: 20%;
-    display: flex;
-    align-items: center;
 }

@@ -124,7 +124,7 @@ class Alien {
         this.y = 100 + b;
         this.width = 50;
         this.height = 50;
-        this.speed = 10;
+        this.speed = .5;
         this.color = alienImageArray[Math.floor(Math.random() * 4)]
     }
 
@@ -143,8 +143,8 @@ class Alien {
 // START GAME / END GAME
 
 // This function resets the game by setting all our alien, laser, and particle arrays to 0 (removing them). It resets the position of
-// our starship, resets our playerLose to false, resets the level, and cancels the previous animation. After that it calls levelOne
-// function to begin our game again.
+// our starship, resets our playerLose to false, resets the level, resets the music, and cancels the previous animation. After that
+// it calls levelOne function to begin our game again.
 function startGame() {
     alienArray = [];
     laserArray = [];
@@ -155,6 +155,13 @@ function startGame() {
     levelCounter.style.visibility = 'visible';
     levelCounter.innerHTML = "LEVEL: 1"
     cancelAnimationFrame(animationId);
+    backgroundMusic.pause();
+    backgroundMusic.currentTime = 0;
+    playMusic();
+    winnerPing.pause();
+    winnerPing.currentTime = 0;
+    loserPing.pause();
+    loserPing.currentTime = 0;
     levelOne();
 }
 
@@ -482,8 +489,11 @@ function checkCollisionAlien(alien) {
 
 // SOUNDS
 
+let winnerPing = new Audio('/audios/win-audio.wav');
+let loserPing = new Audio('/audios/lose-audio.wav');
+let backgroundMusic = new Audio('/audios/Rich in the 80s - DivKid.mp3');
+
 function playMusic() {
-    let backgroundMusic = new Audio('/audios/Rich in the 80s - DivKid.mp3');
     backgroundMusic.volume = 0.03;
     backgroundMusic.play();
     // some weird favicon icon error here
@@ -508,14 +518,12 @@ function newLevelSound() {
 }
 
 function winnerSound() {
-    let winnerPing = new Audio('/audios/win-audio.wav');
     winnerPing.volume = 0.2;
     winnerPing.play();
 
 }
 
 function loserSound() {
-    let loserPing = new Audio('/audios/lose-audio.wav');
     loserPing.volume = 0.2;
     loserPing.play();
 }
@@ -530,7 +538,6 @@ window.onload = () => {
     document.getElementById('start-button').onclick = function() {
         startGame();
         startButton.style.visibility = 'hidden'; 
-        playMusic();
     };
 
     

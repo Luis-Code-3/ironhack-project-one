@@ -1,4 +1,4 @@
-// 1300 x 550 = Canvas
+//==========================================================
 
 // IMAGES & CANVAS
 
@@ -36,11 +36,14 @@ earthImage.src = '/images/earth-win.png'
 
 let alienImageArray = [alienImageOne, alienImageFive, alienImageOne, alienImageOne];
 
+//==========================================================
+
 // PLAYER & ALIENS & KEYS & PARTICLES
 
 let alienArray = [];
 let laserArray = [];
 let particleArray = [];
+let particleColors = ['white','purple','pink','white','white'];
 let animationId;
 let levelOneIdentifier = false;
 let playerLose = false;
@@ -90,10 +93,6 @@ class Laser {
         ctx.fillStyle = "#70d6cb";
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
-
-    remove() {
-
-    }
 }
 
 class Particle {
@@ -117,10 +116,6 @@ class Particle {
         ctx.fill();
         ctx.closePath();
     }
-
-    remove() {
-
-    }
 }
 
 class Alien {
@@ -129,7 +124,7 @@ class Alien {
         this.y = 100 + b;
         this.width = 50;
         this.height = 50;
-        this.speed = .5;
+        this.speed = 10;
         this.color = alienImageArray[Math.floor(Math.random() * 4)]
     }
 
@@ -141,19 +136,15 @@ class Alien {
     draw() {
         ctx.drawImage(this.color, this.x, this.y, this.width, this.height);
     }
-
-    remove() {
-
-    }
-
-
 }
 
-
+//==========================================================
 
 // START GAME / END GAME
 
-
+// This function resets the game by setting all our alien, laser, and particle arrays to 0 (removing them). It resets the position of
+// our starship, resets our playerLose to false, resets the level, and cancels the previous animation. After that it calls levelOne
+// function to begin our game again.
 function startGame() {
     alienArray = [];
     laserArray = [];
@@ -167,116 +158,114 @@ function startGame() {
     levelOne();
 }
 
-// LEVEL 1
-
-
-function levelOne() {
-    levelOneIdentifier = true;
-    createAliensOne();
-    animate();
-    createParticles();
+// This function clears our game by setting all our alien, laser, and particle arrays to 0 (removing them). It hides the level tracker,
+// cancels the previous animation, clears the canvas, draws a loser screen image, and adds the start button so user can click it to
+// start the game again.
+function gameOver() {
+    alienArray = [];
+    laserArray = [];
+    particleArray = [];
+    levelCounter.style.visibility = 'hidden';
+    cancelAnimationFrame(animationId);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(alienInvasion, 0, 0, canvas.width, canvas.height);
+    loserSound();
+    startButton.style.visibility = 'visible';
 }
 
-function animate() {
-    animationId = requestAnimationFrame(animate);
-    ctx.fillStyle = '#0c0c15';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+// This function clears our game by setting all our alien, laser, and particle arrays to 0 (removing them). It hides the level tracker,
+// cancels the previous animation, clears the canvas, draws a winner screen image, and adds the start button so user can click it to
+// start the game again.
+function gameWin() {
+    alienArray = [];
+    laserArray = [];
+    particleArray = [];
+    levelCounter.style.visibility = 'hidden';
+    cancelAnimationFrame(animationId);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(earthImage, 0, 0, canvas.width, canvas.height);
+    winnerSound();
+    startButton.style.visibility = 'visible';
+}
 
-    if(starship.y + starship.height > canvas.height) {
-        keys.right = false;
-        if (keys.left) {
-            starship.speed = -12;
-        } else if (keys.right) {
-            starship.speed = 12;
-        } else {
-            starship.speed = 0;
-        }
-    } else if (starship.y < 0){
-        keys.left = false;
-        if (keys.left) {
-            starship.speed = -12;
-        } else if (keys.right) {
-            starship.speed = 12;
-        } else {
-            starship.speed = 0;
-        }
-    } else {
-        if (keys.left) {
-            starship.speed = -12;
-        } else if (keys.right) {
-            starship.speed = 12;
-        } else {
-            starship.speed = 0;
-        }
-    }
 
-    for (let p = 0; p < particleArray.length; p++) {
-        if(particleArray[p].x < 0) {
-            // particleArray.splice(p, 1)
-            particleArray[p].x = 1440 + (Math.random() * canvas.width);
-            particleArray[p].y = Math.random() * canvas.height;
-            particleArray[p].move();
-        } else {
-            particleArray[p].move();
-        }
-    }
-
-    for (let o = 0; o < alienArray.length; o++) {
-
-        if(alienArray[o].x < 0) {
-            alienArray.splice(o, 1);
-            playerLose = true;
-            //gameOver();
-        } else {
-            alienArray[o].move();
-        }
-    }
-
-    for (let i = 0; i < laserArray.length; i++) {
-
-        if(laserArray[i].x > canvas.width) {
-            laserArray.splice(i, 1);
-        } else {
-            laserArray[i].move();
-        }
-    }
-
-    starship.update();
-
-    for(let j = 0; j < alienArray.length; j++) {
-        if (checkCollisionAlien(alienArray[j]) === true){
-            alienArray.splice(j, 1);
-            explosionSound();
-        }
-    }
-
+// This function checks to see if the player has lost, if player did lose then it calls the gameOver function.
+function aliensWin() {
     if (playerLose === true) {
         gameOver();
     }
+}
 
+//==========================================================
+
+// ANIMATION
+
+// This function begins the animation and calls on multiple functions to loop through. (Movement, collisions, and levels)
+function animationLoop() {
+    animationId = requestAnimationFrame(animationLoop);
+    ctx.fillStyle = '#0c0c15';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    starshipMovement();
+
+    particleMovement();
+
+    alienMovement();
+
+    laserMovement();
+
+    starship.update();
+    
+    collisionCheck();
+
+    aliensWin();
+
+    changeLevel();
+}
+
+//==========================================================
+
+// LEVELS
+
+
+// This function sets the levelOne varibale to true to let us know it is level one, it calls on the function to create aliens for
+// level one, it calls the function to begin the animation loop, and it calls the function to create the background particles.
+function levelOne() {
+    levelOneIdentifier = true;
+    createAliensOne();
+    animationLoop();
+    createParticles();
+}
+
+// This function sets the levelOne varibale to false to let us know it is no longer level one, it changes the innerHTML of the level
+// tracker to level 2, it calls on the function to play the new level sound, and calls on the function to create the aliens for
+// level 2.
+function levelTwo() {
+    levelCounter.innerHTML = 'LEVEL: 2'
+    levelOneIdentifier = false;
+    newLevelSound();
+    createAliensTwo();
+}
+
+// This function changes the level from level one to level two if all the aliens from level one are destroyed and the player has
+// not lost yet, this assumes we are still in level one. If we are not in level one and the conditions above are true, then game is
+// over. 
+function changeLevel() {
     if (alienArray.length === 0 && playerLose === false) {
         if(levelOneIdentifier === true) {
-            createAliensTwo();
+            levelTwo();
         } else {
             gameWin();
         }
-        //gameWin();
     }
 }
 
-let particleColors = ['white','purple','pink','white','white']
+//==========================================================
 
-function createParticles() {
-    for (let i = 0; i < 180; i++) {
-        let xValue = Math.random() * canvas.width;
-        let yValue = Math.random() * canvas.height;
-        let rValue = Math.random() * 3;
-        let cValue = particleColors[Math.round((Math.random() * 4))];
-        particleArray.push(new Particle(xValue, yValue, rValue, cValue));
-        particleArray[i].draw();
-    }
-}
+// CREATE ALIENS & PARTICLES
 
+
+// Creates 36 Aliens for level one. They are formatted in a 6x6 square.
 function createAliensOne() {
     for(let i = 0; i < 36; i++) {
 
@@ -321,34 +310,8 @@ function createAliensOne() {
     }
 }
 
-function checkCollisionAlien(alien) {
-    for (let i = 0; i < laserArray.length; i++) {
-        if (alien.x < laserArray[i].x + laserArray[i].width
-            && alien.x + alien.width > laserArray[i].x
-            && laserArray[i].y < alien.y + alien.height
-            && laserArray[i].y + laserArray[i].height > alien.y) {
-                laserArray.splice(i, 1);
-                return true;
-            } 
-    }
-
-}
-
-function checkCollisionLaser(laser) {
-    for (let i = 0; i < alienArray.length; i++) {
-        if (laser.x < alienArray[i].x + alienArray[i].width
-            && laser.x + laser.width > alienArray[i].x
-            && alienArray[i].y < laser.y + laser.height
-            && alienArray[i].y + alienArray[i].height > laser.y) {
-                return true;
-            }
-    }
-}
-
+// Creates 55 aliens once level two is reached. They are formatted in 5 columns of 11 aliens each.
 function createAliensTwo() {
-    levelCounter.innerHTML = 'LEVEL: 2'
-    levelOneIdentifier = false;
-    newLevelSound();
     for(let i = 0; i < 55; i++) {
 
         if (i === 0) {
@@ -382,31 +345,142 @@ function createAliensTwo() {
             alienArray.push(new Alien(240, 60 + (alienArray[i-1].y - 100)));
             alienArray[i].draw();
         }
-    
     }
 }
 
-function gameOver() {
-    alienArray = [];
-    laserArray = [];
-    particleArray = [];
-    levelCounter.style.visibility = 'hidden';
-    cancelAnimationFrame(animationId);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(alienInvasion, 0, 0, canvas.width, canvas.height);
-    startButton.style.visibility = 'visible';
+// Creates 180 background particles with random positions on the canvas.
+function createParticles() {
+    for (let i = 0; i < 180; i++) {
+        let xValue = Math.random() * canvas.width;
+        let yValue = Math.random() * canvas.height;
+        let rValue = Math.random() * 3;
+        let cValue = particleColors[Math.round((Math.random() * 4))];
+        particleArray.push(new Particle(xValue, yValue, rValue, cValue));
+        particleArray[i].draw();
+    }
 }
 
-function gameWin() {
-    alienArray = [];
-    laserArray = [];
-    particleArray = [];
-    levelCounter.style.visibility = 'hidden';
-    cancelAnimationFrame(animationId);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(earthImage, 0, 0, canvas.width, canvas.height);
-    startButton.style.visibility = 'visible';
+//==========================================================
+
+// MOVEMENT
+
+// Determines the movement of the starship. If the starship every reaches outside of the canvas height it stops. Otherwise while,
+// right or left arrow key is pressed they move according to the speed that is adjusted.
+function starshipMovement() {
+    if(starship.y + starship.height > canvas.height) {
+        keys.right = false;
+        if (keys.left) {
+            starship.speed = -12;
+        } else if (keys.right) {
+            starship.speed = 12;
+        } else {
+            starship.speed = 0;
+        }
+    } else if (starship.y < 0){
+        keys.left = false;
+        if (keys.left) {
+            starship.speed = -12;
+        } else if (keys.right) {
+            starship.speed = 12;
+        } else {
+            starship.speed = 0;
+        }
+    } else {
+        if (keys.left) {
+            starship.speed = -12;
+        } else if (keys.right) {
+            starship.speed = 12;
+        } else {
+            starship.speed = 0;
+        }
+    }
 }
+
+// Determines the movement of the aliens. If a alien reaches outside of the canvas width player will lose. If the aliens haven't
+// passed the canvas x, then it will keep on moving.
+function alienMovement() {
+    for (let o = 0; o < alienArray.length; o++) {
+
+        if(alienArray[o].x < 0) {
+            alienArray.splice(o, 1);
+            playerLose = true;
+        } else {
+            alienArray[o].move();
+        }
+    }
+}
+
+// Determines the movement of the lasers. If the laser every reaches outside of the canvas width it removes itself. If the lasers
+// haven't passed the canvas width, then it will keep on moving.
+function laserMovement() {
+    for (let i = 0; i < laserArray.length; i++) {
+
+        if(laserArray[i].x > canvas.width) {
+            laserArray.splice(i, 1);
+        } else {
+            laserArray[i].move();
+        }
+    }
+}
+
+// Determines the movement of the particles. If the particle every reaches outside of the canvas x it repositions itself.
+// If the particles haven't passed the canvas x, then it will keep on moving.
+function particleMovement() {
+    for (let p = 0; p < particleArray.length; p++) {
+        if(particleArray[p].x < 0) {
+            particleArray[p].x = 1440 + (Math.random() * canvas.width);
+            particleArray[p].y = Math.random() * canvas.height;
+            particleArray[p].move();
+        } else {
+            particleArray[p].move();
+        }
+    }
+}
+
+//==========================================================
+
+// ALIEN & LASER COLLISION
+
+// This will begin checks for collisions between an alien and a laser. It will remove the alien in question if a laser has
+// indeed crossed its path. It will also play an explosion sound.
+function collisionCheck() {
+    for(let j = 0; j < alienArray.length; j++) {
+        if (checkCollisionAlien(alienArray[j]) === true){
+            alienArray.splice(j, 1);
+            explosionSound();
+        }
+    }
+}
+
+
+// This will check if the laser ever intersects with an alien spaceship. If so it will remove that laser in question and return true.
+function checkCollisionAlien(alien) {
+    for (let i = 0; i < laserArray.length; i++) {
+        if (alien.x < laserArray[i].x + laserArray[i].width
+            && alien.x + alien.width > laserArray[i].x
+            && laserArray[i].y < alien.y + alien.height
+            && laserArray[i].y + laserArray[i].height > alien.y) {
+                laserArray.splice(i, 1);
+                return true;
+            } 
+    }
+
+}
+
+// function checkCollisionLaser(laser) {
+//     for (let i = 0; i < alienArray.length; i++) {
+//         if (laser.x < alienArray[i].x + alienArray[i].width
+//             && laser.x + laser.width > alienArray[i].x
+//             && alienArray[i].y < laser.y + laser.height
+//             && alienArray[i].y + alienArray[i].height > laser.y) {
+//                 return true;
+//             }
+//     }
+// }
+
+//==========================================================
+
+// SOUNDS
 
 function playMusic() {
     let backgroundMusic = new Audio('/audios/Rich in the 80s - DivKid.mp3');
@@ -433,23 +507,29 @@ function newLevelSound() {
     newLevel.play();
 }
 
-function hideButton() {
-    startButton.style.visibility = 'hidden'; 
+function winnerSound() {
+    let winnerPing = new Audio('/audios/win-audio.wav');
+    winnerPing.volume = 0.2;
+    winnerPing.play();
+
 }
 
+function loserSound() {
+    let loserPing = new Audio('/audios/lose-audio.wav');
+    loserPing.volume = 0.2;
+    loserPing.play();
+}
 
+//==========================================================
 
+// ON LOAD EVENTS
 
-
-
-
-
-///////
-
+// On load of the web application, we will begin looking for a click on the Start Button, and for keydowns/keyups of the movement &
+// shoot keys for the starship.
 window.onload = () => {
     document.getElementById('start-button').onclick = function() {
         startGame();
-        hideButton();
+        startButton.style.visibility = 'hidden'; 
         playMusic();
     };
 
@@ -484,5 +564,4 @@ window.onload = () => {
     })
 }
 
-console.log(innerWidth);
-console.log(innerHeight);
+//==========================================================

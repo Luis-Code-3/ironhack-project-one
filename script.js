@@ -11,28 +11,28 @@ const startButton = document.querySelector('#start-button');
 const levelCounter = document.querySelector('.level');
 
 const starshipImage = new Image();
-starshipImage.src = "/images/spaceship-new-two.png";
+starshipImage.src = "images/spaceship-new-two.png";
 
 const alienImageOne = new Image();
-alienImageOne.src = "/images/alien-one.png";
+alienImageOne.src = "images/alien-one.png";
 
 const alienImageTwo = new Image();
-alienImageTwo.src = "/images/alien-two.png";
+alienImageTwo.src = "images/alien-two.png";
 
 const alienImageThree = new Image();
-alienImageThree.src = "/images/alien-three.png";
+alienImageThree.src = "images/alien-three.png";
 
 const alienImageFour = new Image();
-alienImageFour.src = "/images/alien-four.png";
+alienImageFour.src = "images/alien-four.png";
 
 const alienImageFive = new Image();
-alienImageFive.src = "/images/alien-five.png";
+alienImageFive.src = "images/alien-five.png";
 
 const alienInvasion = new Image();
-alienInvasion.src = '/images/alien-invasion.png';
+alienInvasion.src = 'images/alien-invasion.png';
 
 const earthImage = new Image();
-earthImage.src = '/images/earth-win.png'
+earthImage.src = 'images/earth-win.png'
 
 let alienImageArray = [alienImageOne, alienImageFive, alienImageOne, alienImageOne];
 
@@ -489,9 +489,9 @@ function checkCollisionAlien(alien) {
 
 // SOUNDS
 
-let winnerPing = new Audio('/audios/win-audio.wav');
-let loserPing = new Audio('/audios/lose-audio.wav');
-let backgroundMusic = new Audio('/audios/Rich in the 80s - DivKid.mp3');
+let winnerPing = new Audio('audios/win-audio.wav');
+let loserPing = new Audio('audios/lose-audio.wav');
+let backgroundMusic = new Audio('audios/Rich in the 80s - DivKid.mp3');
 
 function playMusic() {
     backgroundMusic.volume = 0.03;
@@ -500,19 +500,19 @@ function playMusic() {
 }
 
 function laserSound() {
-    let laserShot = new Audio('/audios/laser-one.mp3');
+    let laserShot = new Audio('audios/laser-one.mp3');
     laserShot.volume = 0.1;
     laserShot.play();
 }
 
 function explosionSound() {
-    let boom = new Audio('/audios/explosion-one.wav');
+    let boom = new Audio('audios/explosion-one.wav');
     boom.volume = 0.1;
     boom.play();
 }
 
 function newLevelSound() {
-    let newLevel = new Audio('/audios/level-sound.wav');
+    let newLevel = new Audio('audios/level-sound.wav');
     newLevel.volume = 0.2;
     newLevel.play();
 }

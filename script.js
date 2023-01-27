@@ -29,7 +29,7 @@ const alienImageFive = new Image();
 alienImageFive.src = "images/alien-five.png";
 
 const bossAlienImage = new Image();
-bossAlienImage.src = "/images/boss-two.png";
+bossAlienImage.src = "images/boss-two.png";
 
 const alienInvasion = new Image();
 alienInvasion.src = 'images/alien-invasion.png';
@@ -88,7 +88,7 @@ let bossAlien = {
     y: canvas.height/2 - 200,
     width: 400,
     height: 400,
-    speed: 10,
+    speed: .5,
 
     update: function() {
         this.draw();
@@ -569,10 +569,10 @@ function checkCollisionBoss(boss) {
 
 // SOUNDS
 
-let winnerPing = new Audio('/audios/win-audio.wav');
-let loserPing = new Audio('/audios/lose-audio.wav');
+let winnerPing = new Audio('audios/win-audio.wav');
+let loserPing = new Audio('audios/lose-audio.wav');
 let backgroundMusic = new Audio('/audios/Rich in the 80s - DivKid.mp3');
-let bossSound = new Audio('/audios/boss-sound.wav')
+let bossSound = new Audio('audios/boss-sound.wav')
 
 function playMusic() {
     backgroundMusic.volume = 0.03;

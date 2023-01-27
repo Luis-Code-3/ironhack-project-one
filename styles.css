@@ -43,7 +43,7 @@
 }
 
 canvas {
-    background-image: url(/images/background-image-two.png);
+    background-image: url(images/background-image-two.png);
     background-size: cover;
     background-position-y: 65%;
     box-shadow: 0px 0px 30px black;

@@ -84,7 +84,7 @@ let starship = {
 }
 
 let bossAlien = {
-    x: 1450,
+    x: canvas.width + 10,
     y: canvas.height/2 - 200,
     width: 400,
     height: 400,
@@ -516,7 +516,9 @@ function collisionCheck() {
         }
     }
 
-    killBossCheck();
+    if (bossAlive) {
+        killBossCheck();
+    }
 }
 
 

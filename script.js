@@ -571,7 +571,7 @@ function checkCollisionBoss(boss) {
 
 let winnerPing = new Audio('audios/win-audio.wav');
 let loserPing = new Audio('audios/lose-audio.wav');
-let backgroundMusic = new Audio('/audios/Rich in the 80s - DivKid.mp3');
+let backgroundMusic = new Audio('audios/Rich in the 80s - DivKid.mp3');
 let bossSound = new Audio('audios/boss-sound.wav')
 
 function playMusic() {

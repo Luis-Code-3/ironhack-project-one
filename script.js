@@ -28,6 +28,9 @@ alienImageFour.src = "/images/alien-four.png";
 const alienImageFive = new Image();
 alienImageFive.src = "/images/alien-five.png";
 
+const bossAlienImage = new Image();
+bossAlienImage.src = "/images/boss-two.png";
+
 const alienInvasion = new Image();
 alienInvasion.src = '/images/alien-invasion.png';
 
@@ -46,7 +49,12 @@ let particleArray = [];
 let particleColors = ['white','purple','pink','white','white'];
 let animationId;
 let levelOneIdentifier = false;
+let levelTwoIdentifier = false;
+let bossAlive = false;
+let gameWon = false;
 let playerLose = false;
+let bossHitCounter = 0;
+let bossHitKill = 20 + Math.floor(Math.random() * 100);
 let keys = {
     right: false,
     left: false
@@ -73,6 +81,23 @@ let starship = {
 
     }
 
+}
+
+let bossAlien = {
+    x: 1450,
+    y: canvas.height/2 - 200,
+    width: 400,
+    height: 400,
+    speed: 10,
+
+    update: function() {
+        this.draw();
+        this.x -= this.speed
+    },
+
+    draw: function() {
+        ctx.drawImage(bossAlienImage, this.x, this.y, this.width, this.height);
+    }
 }
 
 class Laser {
@@ -143,8 +168,8 @@ class Alien {
 // START GAME / END GAME
 
 // This function resets the game by setting all our alien, laser, and particle arrays to 0 (removing them). It resets the position of
-// our starship, resets our playerLose to false, resets the level, resets the music, and cancels the previous animation. After that
-// it calls levelOne function to begin our game again.
+// our starship, resets our playerLose to false, bossAlive to false, gameWon to false, bossHitCounter to 0, bossHitKill to random,
+// resets the level, resets the music, and cancels the previous animation. After that it calls levelOne function to begin our game again.
 function startGame() {
     alienArray = [];
     laserArray = [];
@@ -152,6 +177,10 @@ function startGame() {
     starship.x = 100;
     starship.y = canvas.height/2 - 25;
     playerLose = false;
+    bossAlive = false;
+    gameWon = false;
+    bossHitCounter = 0;
+    bossHitKill = 20 + Math.floor(Math.random() * 100);
     levelCounter.style.visibility = 'visible';
     levelCounter.innerHTML = "LEVEL: 1"
     cancelAnimationFrame(animationId);
@@ -228,6 +257,8 @@ function animationLoop() {
     aliensWin();
 
     changeLevel();
+
+    bossMovement();
 }
 
 //==========================================================
@@ -244,24 +275,38 @@ function levelOne() {
     createParticles();
 }
 
-// This function sets the levelOne varibale to false to let us know it is no longer level one, it changes the innerHTML of the level
-// tracker to level 2, it calls on the function to play the new level sound, and calls on the function to create the aliens for
-// level 2.
+// This function sets the levelOne varibale to false to let us know it is no longer level one, sets the leveltwo variable to true
+// it changes the innerHTML of the level tracker to level 2, it calls on the function to play the new level sound, and calls on the
+// function to create the aliens for level 2.
 function levelTwo() {
     levelCounter.innerHTML = 'LEVEL: 2'
+    levelTwoIdentifier = true;
     levelOneIdentifier = false;
     newLevelSound();
     createAliensTwo();
 }
 
-// This function changes the level from level one to level two if all the aliens from level one are destroyed and the player has
-// not lost yet, this assumes we are still in level one. If we are not in level one and the conditions above are true, then game is
-// over. 
+// This function sets the levelTwo varibale to false to let us know it is no longer level two, sets the bossAlive variable to true
+// it changes the innerHTML of the level tracker to level 3, it calls on the function to play the new level sound & boss music,
+// and calls on the method to create the boss for level 3.
+function levelThree() {
+    levelCounter.innerHTML = 'LEVEL: 3'
+    bossAlive = true;
+    levelTwoIdentifier = false;
+    newLevelSound();
+    bossMusic();
+    bossAlien.draw();
+}
+
+// This function changes the levels and checks to see if player won game.
 function changeLevel() {
-    if (alienArray.length === 0 && playerLose === false) {
+    if (alienArray.length === 0 && playerLose === false && bossAlive === false) {
         if(levelOneIdentifier === true) {
             levelTwo();
-        } else {
+        } else if (levelTwoIdentifier === true) {
+            levelThree();
+            //gameWin();
+        } else if (gameWon === true){
             gameWin();
         }
     }
@@ -403,6 +448,18 @@ function starshipMovement() {
     }
 }
 
+// Determines the movement of the boss. If a boss reaches outside of the canvas width player will lose. If the boss hasn't
+// passed the canvas x, then it will keep on moving.
+function bossMovement() {
+    if (bossAlive === true) {
+        if (bossAlien.x < 0) {
+            playerLose = true;
+        } else {
+            bossAlien.update();
+        }
+    }
+}
+
 // Determines the movement of the aliens. If a alien reaches outside of the canvas width player will lose. If the aliens haven't
 // passed the canvas x, then it will keep on moving.
 function alienMovement() {
@@ -449,7 +506,8 @@ function particleMovement() {
 // ALIEN & LASER COLLISION
 
 // This will begin checks for collisions between an alien and a laser. It will remove the alien in question if a laser has
-// indeed crossed its path. It will also play an explosion sound.
+// indeed crossed its path. It will also play an explosion sound. It will also call function to check collisions between
+// laser and boss.
 function collisionCheck() {
     for(let j = 0; j < alienArray.length; j++) {
         if (checkCollisionAlien(alienArray[j]) === true){
@@ -457,6 +515,8 @@ function collisionCheck() {
             explosionSound();
         }
     }
+
+    killBossCheck();
 }
 
 
@@ -474,16 +534,36 @@ function checkCollisionAlien(alien) {
 
 }
 
-// function checkCollisionLaser(laser) {
-//     for (let i = 0; i < alienArray.length; i++) {
-//         if (laser.x < alienArray[i].x + alienArray[i].width
-//             && laser.x + laser.width > alienArray[i].x
-//             && alienArray[i].y < laser.y + laser.height
-//             && alienArray[i].y + alienArray[i].height > laser.y) {
-//                 return true;
-//             }
-//     }
-// }
+// This function will check for collisions between laser and boss, and if check function returns true then the gameWon will be set to
+// true, and boss will be reset.
+function killBossCheck() {
+    if (checkCollisionBoss(bossAlien) === true) {
+        bossAlien.x = 1540;
+        bossAlive = false;
+        gameWon = true;
+        explosionSound();
+    }
+}
+
+// This function is what removes the laser when it collides with the boss. The boss takes a random amount of shots to destroy. It
+// will check to see if the amount of laser shots matches what it takes to destory the boss, if so.. it returns true.
+function checkCollisionBoss(boss) {
+    for (let i = 0; i < laserArray.length; i++) {
+        if (boss.x < laserArray[i].x + laserArray[i].width
+            && boss.x + boss.width > laserArray[i].x
+            && laserArray[i].y < boss.y + boss.height
+            && laserArray[i].y + laserArray[i].height > boss.y) {
+                laserArray.splice(i, 1);
+                explosionSound();
+                bossHitCounter++
+            } 
+    }
+
+    if(bossHitCounter === bossHitKill) {
+        return true;
+    }
+
+}
 
 //==========================================================
 
@@ -492,6 +572,7 @@ function checkCollisionAlien(alien) {
 let winnerPing = new Audio('/audios/win-audio.wav');
 let loserPing = new Audio('/audios/lose-audio.wav');
 let backgroundMusic = new Audio('/audios/Rich in the 80s - DivKid.mp3');
+let bossSound = new Audio('/audios/boss-sound.wav')
 
 function playMusic() {
     backgroundMusic.volume = 0.03;
@@ -517,6 +598,11 @@ function newLevelSound() {
     newLevel.play();
 }
 
+function bossMusic() {
+    bossSound.volume = 0.2;
+    bossSound.play();
+}
+
 function winnerSound() {
     winnerPing.volume = 0.2;
     winnerPing.play();
@@ -530,7 +616,7 @@ function loserSound() {
 
 //==========================================================
 
-// ON LOAD EVENTS
+// ON LOAD & EVENTS
 
 // On load of the web application, we will begin looking for a click on the Start Button, and for keydowns/keyups of the movement &
 // shoot keys for the starship.
@@ -540,7 +626,6 @@ window.onload = () => {
         startButton.style.visibility = 'hidden'; 
     };
 
-    
     document.addEventListener('keydown', e => {
         switch (e.keyCode) {
             case 37:
@@ -570,5 +655,4 @@ window.onload = () => {
         }
     })
 }
-
 //==========================================================
